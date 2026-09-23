@@ -90,12 +90,60 @@
     font-weight:500; text-shadow:0 1px 6px rgba(0,0,0,.6);
   }
 
+  /* --- mist: drifts over the still, then clears when the film starts --- */
+  .mist{
+    position:absolute; inset:-12%; z-index:2; pointer-events:none;
+    opacity:.82; transition:opacity 1.15s ease, transform 1.15s ease;
+    mix-blend-mode:screen;
+  }
+  .mist i{
+    position:absolute; display:block; border-radius:50%;
+    background:radial-gradient(circle at 50% 50%,
+      rgba(226,240,238,.52) 0%, rgba(210,230,229,.24) 44%, rgba(210,230,229,0) 74%);
+    filter:blur(14px);
+  }
+  .mist i:nth-child(1){ width:88%; height:52%; left:-14%; top:14%;  animation:drift1 19s ease-in-out infinite; }
+  .mist i:nth-child(2){ width:76%; height:46%; right:-18%; top:44%; animation:drift2 23s ease-in-out infinite; }
+  .mist i:nth-child(3){ width:96%; height:40%; left:-6%;  bottom:2%; animation:drift3 27s ease-in-out infinite; }
+  @keyframes drift1{
+    0%,100%{ transform:translate3d(0,0,0) scale(1); opacity:.85 }
+    50%    { transform:translate3d(9%,-5%,0) scale(1.1); opacity:.62 }
+  }
+  @keyframes drift2{
+    0%,100%{ transform:translate3d(0,0,0) scale(1.05); opacity:.7 }
+    50%    { transform:translate3d(-11%,6%,0) scale(1); opacity:.9 }
+  }
+  @keyframes drift3{
+    0%,100%{ transform:translate3d(0,0,0) scale(1); opacity:.75 }
+    50%    { transform:translate3d(6%,-7%,0) scale(1.14); opacity:.5 }
+  }
+  /* the clearing */
+  .frame.playing .mist{ opacity:0; transform:scale(1.16); }
+
+  /* a slow halo, so the eye finds the play button */
+  .ring::before{
+    content:""; position:absolute; inset:-14px; border-radius:50%;
+    border:2px solid rgba(255,255,255,.72);
+    animation:halo 3s cubic-bezier(.22,.61,.36,1) infinite;
+  }
+  @keyframes halo{
+    0%  { transform:scale(.82); opacity:.75 }
+    70% { transform:scale(1.28); opacity:0 }
+    100%{ transform:scale(1.28); opacity:0 }
+  }
+  .frame.playing .ring::before{ animation:none; opacity:0 }
+
   /* the whole point: controls sit UNDER the picture, never on it */
   .bar{
     margin-top:10px; background:var(--card); border:1px solid var(--line);
     border-radius:13px; padding:9px 12px 7px;
+    animation:barIn .5s cubic-bezier(.22,.61,.36,1) both;
   }
   .bar[hidden]{display:none}
+  @keyframes barIn{
+    from{ opacity:0; transform:translateY(-8px) }
+    to  { opacity:1; transform:translateY(0) }
+  }
   .seek{
     -webkit-appearance:none; appearance:none; width:100%; height:20px;
     background:transparent; cursor:pointer; display:block; margin:0 0 1px;
@@ -109,7 +157,12 @@
   .seek::-webkit-slider-thumb{
     -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%;
     background:var(--teal); border:2px solid var(--card); margin-top:-4.5px;
-    box-shadow:0 1px 3px rgba(0,0,0,.3);
+    box-shadow:0 1px 3px rgba(0,0,0,.3), 0 0 0 0 rgba(14,110,99,.42);
+    transition:box-shadow .2s ease, transform .15s ease;
+  }
+  .seek:hover::-webkit-slider-thumb,
+  .seek:focus-visible::-webkit-slider-thumb{
+    transform:scale(1.15); box-shadow:0 1px 3px rgba(0,0,0,.3), 0 0 0 7px rgba(14,110,99,.16);
   }
   .seek::-moz-range-thumb{
     width:14px;height:14px;border-radius:50%;background:var(--teal);
@@ -125,8 +178,15 @@
   }
   .cbtn:hover{background:var(--card-alt); color:var(--teal)}
   .cbtn:focus-visible{outline:2px solid var(--teal); outline-offset:1px}
-  .cbtn-main{background:var(--teal); color:#fff; width:44px; height:44px; border-radius:12px}
-  .cbtn-main:hover{background:var(--teal-deep); color:#fff}
+  .cbtn-main{
+    background:var(--teal); color:#fff; width:44px; height:44px; border-radius:12px;
+    box-shadow:0 2px 10px -2px rgba(14,110,99,.5);
+  }
+  .cbtn-main:hover{background:var(--teal-deep); color:#fff; transform:translateY(-1px)}
+  .cbtn:active{transform:scale(.93)}
+  .cbtn svg{transition:transform .2s cubic-bezier(.22,.61,.36,1)}
+  #back10:active svg{transform:rotate(-28deg)}
+  #fwd10:active svg{transform:rotate(28deg)}
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]) .cbtn-main,
     :root:not([data-theme="light"]) .cbtn-main:hover{color:#06201C}
@@ -171,38 +231,6 @@
   }
   .chip:hover{border-color:var(--teal); color:var(--teal)}
 
-  /* ---------- survey ---------- */
-  .panel{
-    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-    padding:26px 22px; margin-top:34px;
-  }
-  .panel h2{
-    font-family:Fraunces,Georgia,serif; font-weight:600; font-size:22px;
-    margin:0 0 12px; letter-spacing:-.01em;
-  }
-  .panel p{margin:0 0 16px; color:var(--ink-soft)}
-  fieldset{border:0; margin:0 0 20px; padding:0}
-  legend{font-size:14.5px; font-weight:600; margin-bottom:10px; color:var(--ink); padding:0}
-  .opts{display:flex; gap:8px; flex-wrap:wrap}
-  .opt input{position:absolute; opacity:0; width:0; height:0}
-  .opt span{
-    display:block; padding:9px 15px; border-radius:100px; border:1.5px solid var(--line-strong);
-    font-size:14px; cursor:pointer; color:var(--ink-soft); transition:all .15s ease;
-  }
-  .opt input:checked + span{background:var(--teal); border-color:var(--teal); color:#fff}
-  .opt input:focus-visible + span{outline:2px solid var(--teal); outline-offset:2px}
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]) .opt input:checked + span{color:#06201C}
-  }
-  :root[data-theme="dark"] .opt input:checked + span{color:#06201C}
-  textarea{
-    width:100%; min-height:82px; padding:12px 14px; border-radius:11px;
-    border:1.5px solid var(--line-strong); background:var(--paper); color:var(--ink);
-    font-family:inherit; font-size:15px; resize:vertical;
-  }
-  textarea:focus{outline:2px solid var(--teal); outline-offset:1px; border-color:transparent}
-  .thanks{display:none; text-align:center; padding:22px 0; color:var(--teal); font-weight:600}
-
   footer{
     margin-top:40px; padding-top:24px; border-top:1px solid var(--line);
     font-size:12.5px; color:var(--ink-faint); text-align:center; line-height:1.7;
@@ -214,7 +242,10 @@
     transition:opacity .2s ease,transform .2s ease; z-index:50;
   }
   .toast.show{opacity:1; transform:translate(-50%,0)}
-  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important}
+    .mist{opacity:.5}
+  }
 </style>
 </head>
 <body>
@@ -231,6 +262,7 @@
              aria-label="Organ donation film, 1 minute 38 seconds">
         <source src="film.mp4" type="video/mp4">
       </video>
+      <span class="mist" id="mist" aria-hidden="true"><i></i><i></i><i></i></span>
       <button class="cover" id="cover" aria-label="Play the film (1 minute 38 seconds)">
         <img id="posterImg" src="poster.jpg" alt="">
         <span class="scrim"></span>
@@ -312,42 +344,13 @@
     </div>
   </div>
 
-  <section class="panel">
-    <h2>Three quick questions</h2>
-    <p>Optional, anonymous, and about 20 seconds. Your answers help this research understand what the film actually changes.</p>
-    <form id="fb">
-      <fieldset>
-        <legend>Had you thought about registering before watching this?</legend>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="considered" value="Never"><span>Never</span></label>
-          <label class="opt"><input type="radio" name="considered" value="Once or twice"><span>Once or twice</span></label>
-          <label class="opt"><input type="radio" name="considered" value="Often"><span>Often</span></label>
-          <label class="opt"><input type="radio" name="considered" value="Already registered"><span>Already registered</span></label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>How likely are you to register now?</legend>
-        <div class="opts">
-          <label class="opt"><input type="radio" name="likelihood" value="Not likely"><span>Not likely</span></label>
-          <label class="opt"><input type="radio" name="likelihood" value="Unsure"><span>Unsure</span></label>
-          <label class="opt"><input type="radio" name="likelihood" value="Likely"><span>Likely</span></label>
-          <label class="opt"><input type="radio" name="likelihood" value="I just did"><span>I just did</span></label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>What is your biggest remaining question or concern?</legend>
-        <textarea id="q3" name="question" maxlength="500" placeholder="Optional &mdash; in your own words"></textarea>
-      </fieldset>
-      <button class="btn primary" type="submit" id="send" style="width:100%">Send my answers</button>
-    </form>
-    <div class="thanks" id="thanks">Thank you &mdash; your answers have been recorded.</div>
-  </section>
-
   <footer>
-    <p>This page is part of a doctoral research project on organ donation in South Africa.<br>
-    It counts anonymous page opens, plays, downloads and link clicks so that the reach of the film can be reported.
-    <strong>No personal information is collected</strong> &mdash; no names, contact numbers, email addresses or IP addresses.</p>
-    <p>The Organ Donor Foundation of South Africa is an independent organisation and is not the publisher of this page.</p>
+    <p>This video forms part of a UKZN doctoral research aimed at encouraging organ
+    donation in South Africa.</p>
+    <p>No personal information is collected &mdash; no names, contact numbers, email
+    addresses or IP addresses.</p>
+    <p>The Organ Donor Foundation of South Africa is an independent organisation and
+    is not the publisher of this page.</p>
   </footer>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -427,6 +430,7 @@
     started = true;
     track('video_play');
     cover.hidden = true;
+    document.getElementById('frame').classList.add('playing');  /* mist clears */
     bar.hidden = false;
     var p = vid.play();
     if(p && p.catch) p.catch(function(){ setIcon(true); });
@@ -491,19 +495,6 @@
     } else { toast(shareUrl); }
   });
 
-  /* ---------------- survey ---------------- */
-  document.getElementById('fb').addEventListener('submit', function(ev){
-    ev.preventDefault();
-    var f = ev.target, btn = document.getElementById('send');
-    btn.disabled = true; btn.textContent = 'Sending…';
-    beacon('fb=1' +
-      '&q1=' + encodeURIComponent(f.considered.value || '') +
-      '&q2=' + encodeURIComponent(f.likelihood.value || '') +
-      '&q3=' + encodeURIComponent((f.question.value || '').slice(0,500)) +
-      '&v='  + encodeURIComponent(VID));
-    f.hidden = true;
-    document.getElementById('thanks').style.display = 'block';
-  });
 })();
 </script>
 </body>
