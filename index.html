@@ -468,11 +468,17 @@
   /* The log lives on Apps Script, a different origin, so a plain GET beacon is
      used. No response is read, so CORS never comes into it. */
   function beacon(q){
+    var url = EXEC + '?' + q;
+    /* Must be a GET. The Apps Script endpoint only implements doGet, and
+       navigator.sendBeacon() always POSTs -- which is silently discarded.
+       keepalive lets the request outlive the page on a tap-away. */
     try{
-      var url = EXEC + '?' + q;
-      if(navigator.sendBeacon){ navigator.sendBeacon(url); return; }
-      new Image().src = url;
-    }catch(e){ /* counting must never break the page */ }
+      if(window.fetch){
+        fetch(url, {mode:'no-cors', keepalive:true}).catch(function(){});
+        return;
+      }
+    }catch(e){ /* fall through to the image */ }
+    try{ new Image().src = url; }catch(e){ /* counting must never break the page */ }
   }
   function track(event){
     beacon('e=' + encodeURIComponent(event) +
